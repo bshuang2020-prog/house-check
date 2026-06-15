@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>看屋紀錄 · 鉅陞日和花園</title>
+<style>
+  :root{
+    --ink:#1a2230; --ink-soft:#5a6678; --line:#e3e7ee; --bg:#f4f6f9;
+    --card:#ffffff; --brand:#1f5f8b; --brand-d:#16384f; --accent:#e08a3c;
+    --good:#2f8f5b; --warn:#c2532f; --warnbg:#fbe9e2; --goodbg:#e4f2ea;
+    --chip:#eef2f7;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;
+    background:var(--bg); color:var(--ink); font-size:15px; line-height:1.55;
+    padding-bottom:96px;
+  }
+  /* ---- top ---- */
+  header{
+    background:linear-gradient(150deg,var(--brand-d),var(--brand));
+    color:#fff; padding:18px 18px 14px; position:sticky; top:0; z-index:50;
+    box-shadow:0 2px 12px rgba(22,56,79,.18);
+  }
+  header h1{margin:0; font-size:18px; letter-spacing:.5px; font-weight:700;}
+  header .sub{font-size:12.5px; opacity:.85; margin-top:3px;}
+  header .price{font-size:12.5px; opacity:.92; margin-top:8px; background:rgba(255,255,255,.13);
+    display:inline-block; padding:3px 10px; border-radius:20px;}
+  /* ---- tabs ---- */
+  nav{
+    display:flex; overflow-x:auto; gap:6px; padding:10px 12px;
+    background:var(--card); border-bottom:1px solid var(--line);
+    position:sticky; top:0; z-index:40; scrollbar-width:none;
+  }
+  nav::-webkit-scrollbar{display:none;}
+  .tab{
+    flex:0 0 auto; padding:8px 14px; border-radius:22px; font-size:13.5px;
+    background:var(--chip); color:var(--ink-soft); border:none; font-weight:600;
+    white-space:nowrap; transition:.15s;
+  }
+  .tab.on{background:var(--brand); color:#fff;}
+  main{padding:14px;}
+  section{display:none; animation:fade .2s ease;}
+  section.on{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:14px; margin-bottom:14px;}
+  .card h2{margin:0 0 4px; font-size:15.5px; color:var(--brand);}
+  .card .hint{font-size:12.5px; color:var(--ink-soft); margin:0 0 12px;}
+  .row{margin-bottom:13px;}
+  .row:last-child{margin-bottom:0;}
+  label.q{display:block; font-size:13.5px; font-weight:600; margin-bottom:7px;}
+  /* choice chips */
+  .opts{display:flex; flex-wrap:wrap; gap:7px;}
+  .opt{padding:7px 13px; border-radius:10px; border:1.5px solid var(--line);
+    background:#fff; font-size:13px; color:var(--ink); font-weight:600;}
+  .opt.sel{border-color:var(--brand); background:#eaf2f8; color:var(--brand-d);}
+  .opt.sel.warn{border-color:var(--warn); background:var(--warnbg); color:var(--warn);}
+  .opt.sel.good{border-color:var(--good); background:var(--goodbg); color:var(--good);}
+  input[type=text],input[type=number],textarea{
+    width:100%; padding:10px 12px; border:1.5px solid var(--line); border-radius:10px;
+    font-size:15px; font-family:inherit; background:#fff; color:var(--ink);
+  }
+  input:focus,textarea:focus{outline:none; border-color:var(--brand);}
+  .inline{display:flex; gap:8px; align-items:center;}
+  .inline input{flex:1;}
+  .unit{font-size:13px; color:var(--ink-soft); white-space:nowrap;}
+  /* data callouts */
+  .deal{background:#fff; border:1px solid var(--line); border-radius:10px; overflow:hidden;}
+  .deal .r{display:flex; justify-content:space-between; padding:9px 12px; border-bottom:1px solid var(--line); font-size:13px;}
+  .deal .r:last-child{border-bottom:none;}
+  .deal .r b{color:var(--brand-d);}
+  .deal .r.k{background:#fff7ec;}
+  .note{font-size:12.5px; color:var(--ink-soft); background:#f7f9fc; border-left:3px solid var(--brand);
+    padding:9px 11px; border-radius:0 8px 8px 0; margin-top:10px;}
+  .note.warn{border-color:var(--warn); background:var(--warnbg); color:#7a2e16;}
+  /* room calc */
+  .roomcalc{border:1px solid var(--line); border-radius:10px; padding:11px; margin-bottom:10px; background:#fbfcfe;}
+  .roomcalc .name{font-weight:700; font-size:14px; margin-bottom:8px;}
+  .dims{display:flex; gap:8px;}
+  .dims .f{flex:1;}
+  .dims .f span{font-size:11px; color:var(--ink-soft); display:block; margin-bottom:3px;}
+  .verdict{margin-top:9px; font-size:13px; font-weight:700; padding:7px 10px; border-radius:8px; text-align:center;}
+  .verdict.good{background:var(--goodbg); color:var(--good);}
+  .verdict.warn{background:var(--warnbg); color:var(--warn);}
+  .verdict.mid{background:#fff3da; color:#9a6310;}
+  .verdict.idle{background:var(--chip); color:var(--ink-soft);}
+  .totalbar{background:var(--brand-d); color:#fff; border-radius:10px; padding:12px; font-size:13.5px; display:flex; justify-content:space-between; align-items:center;}
+  .totalbar b{font-size:18px;}
+  table.ref{width:100%; border-collapse:collapse; font-size:12px; margin-top:6px;}
+  table.ref th,table.ref td{border:1px solid var(--line); padding:5px 7px; text-align:left;}
+  table.ref th{background:var(--chip); color:var(--ink-soft);}
+  .stars{display:flex; gap:6px;}
+  .star{font-size:24px; color:#d4dae3; cursor:pointer;}
+  .star.lit{color:var(--accent);}
+  .scorehead{font-size:13.5px; font-weight:600; margin-bottom:5px;}
+  /* footer actions */
+  .actions{position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--line);
+    padding:10px 12px calc(10px + env(safe-area-inset-bottom)); display:flex; gap:8px; z-index:60;}
+  .btn{flex:1; padding:13px; border-radius:11px; border:none; font-size:14px; font-weight:700; font-family:inherit;}
+  .btn.primary{background:var(--brand); color:#fff;}
+  .btn.ghost{background:var(--chip); color:var(--brand-d);}
+  .toast{position:fixed; bottom:84px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--ink); color:#fff; padding:10px 18px; border-radius:24px; font-size:13px;
+    opacity:0; transition:.25s; z-index:80; pointer-events:none;}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  dialog{border:none; border-radius:16px; padding:0; width:90%; max-width:420px;}
+  dialog::backdrop{background:rgba(20,30,45,.5);}
+  .dlg{padding:18px;}
+  .dlg h3{margin:0 0 10px; font-size:16px; color:var(--brand-d);}
+  .dlg textarea{height:180px; font-size:12px; font-family:monospace;}
+  .dlg .x{display:flex; gap:8px; margin-top:12px;}
+  .prio{font-size:13px; padding:6px 0; border-bottom:1px dashed var(--line);}
+  .prio:last-child{border:none;}
+  .pill{display:inline-block; font-size:11px; padding:1px 8px; border-radius:10px; margin-right:6px; font-weight:700;}
+  .pill.hard{background:var(--warnbg); color:var(--warn);}
+  .pill.soft{background:#eaf2f8; color:var(--brand);}
+  /* overview tab */
+  .ovverdict{background:var(--midbg); color:var(--mid); font-weight:700; font-size:14.5px;
+    padding:13px 14px; border-radius:11px; text-align:center;}
+  .ovlist{margin:2px 0 0; padding-left:19px; font-size:13.5px;}
+  .ovlist li{margin-bottom:6px;}
+  .ovlist.good li::marker{color:var(--good);}
+  .hardbox{background:var(--warnbg); border:1px solid #f0c9bb; border-radius:11px; padding:11px 6px 11px 0;}
+  .hardbox ul{margin:0; padding-left:24px; font-size:13.5px; color:#7a2e16;}
+  .hardbox ul li{margin-bottom:6px;}
+  .hardbox ul li b{color:var(--warn);}
+</style>
+</head>
+<body>
+<header>
+  <h1>鉅陞日和花園 · 看屋紀錄</h1>
+  <div class="sub">11F／15F · 3房2廳1衛 · 權狀 35.51 坪（主建物 15.19 坪 · 含平面車位）</div>
+  <div class="price">開價 1,698 萬　·　議價目標 1,600–1,650 萬</div>
+</header>
+
+<nav id="tabs"></nav>
+<main id="main"></main>
+
+<div class="actions">
+  <button class="btn ghost" onclick="openData()">存檔／讀取</button>
+  <button class="btn primary" onclick="copySummary()">複製摘要</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<dialog id="dataDlg">
+  <div class="dlg">
+    <h3>存檔 / 讀取紀錄</h3>
+    <p style="font-size:12.5px;color:#5a6678;margin:0 0 8px">複製下框文字保存（記事本/LINE給自己）。下次貼回此框按「讀取」即可還原。</p>
+    <textarea id="dataBox"></textarea>
+    <div class="x">
+      <button class="btn ghost" onclick="loadData()">讀取貼上的資料</button>
+      <button class="btn primary" onclick="closeData()">完成</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+const S = {
+  // 屋況
+  c_notes:'屋齡5年次新、簡易裝潢。文案宣稱格局方正採光優良屬廣告詞，待現場驗證。務必索取漏水保固範圍與年限。',
+  // 樓層
+  e_floor:'一般',
+  e_facility:'飯店式管理、住戶專屬餐飲、大廳（公設33%）',
+  e_fee:'2656元/月（待確認每坪）',
+  e_walk:'13',
+  // 格局/風水
+  l_centertoilet:'是',
+  l_square:'方正',
+  l_notes:'【風水】1)疑似暗廁：唯一衛浴居中、未見對外窗→風水主穢氣攻心、財氣受污；現實主潮濕發霉(硬傷)。2)開門見灶風險：開放廚房，進門若直視爐口→「開門見灶錢財多耗」主漏財，屏風/中島可化解。3)穿堂煞：若大門與陽台成直線→「前通後通人財兩空」主聚不了財，玄關屏風化解(待確認大門位置)。格局大致方正無缺角。',
+  // 評分（線上初評）
+  sc_cond:4, sc_layout:2, sc_env:4, sc_price:3,
+  sc_final:'再考慮',
+  sc_notes:'優勢：A18站前雙鐵(步行700m)、鄰華泰名品城/IKEA/公七公園、5年次新、開價屬行情中段。硬傷：①3房僅1衛②主建物僅15.19坪空間偏緊③座向噪音未明④疑似暗廁。建議實地看屋鎖定三大待測(衛浴/空間/噪音西曬)，確認西曬或正對軌道則壓至1600萬以下。'
+}; // state store: key -> value
+
+// ---------- helpers ----------
+function setVal(k,v){ S[k]=v; }
+function getVal(k){ return S[k]; }
+
+function chips(key, options){
+  // options: [{v, cls?}]
+  const wrap = document.createElement('div'); wrap.className='opts';
+  options.forEach(o=>{
+    const b=document.createElement('button');
+    b.className='opt'+(o.cls?' '+o.cls:'');
+    b.textContent=o.v;
+    if(getVal(key)===o.v){ b.classList.add('sel'); }
+    b.onclick=()=>{
+      if(getVal(key)===o.v){ setVal(key,null); }
+      else { setVal(key,o.v); }
+      // refresh siblings
+      [...wrap.children].forEach(c=>c.classList.remove('sel'));
+      if(getVal(key)===o.v) b.classList.add('sel');
+    };
+    wrap.appendChild(b);
+  });
+  return wrap;
+}
+function textRow(label,key,ph,type){
+  const r=document.createElement('div'); r.className='row';
+  if(label){const l=document.createElement('label'); l.className='q'; l.textContent=label; r.appendChild(l);}
+  const i=document.createElement('input'); i.type=type||'text'; i.placeholder=ph||'';
+  if(getVal(key)!=null) i.value=getVal(key);
+  i.oninput=()=>setVal(key,i.value);
+  r.appendChild(i); return r;
+}
+function choiceRow(label,key,opts){
+  const r=document.createElement('div'); r.className='row';
+  const l=document.createElement('label'); l.className='q'; l.textContent=label; r.appendChild(l);
+  r.appendChild(chips(key,opts)); return r;
+}
+function card(title,hint){
+  const c=document.createElement('div'); c.className='card';
+  if(title){const h=document.createElement('h2'); h.textContent=title; c.appendChild(h);}
+  if(hint){const p=document.createElement('p'); p.className='hint'; p.textContent=hint; c.appendChild(p);}
+  return c;
+}
+function el(tag,cls,html){const e=document.createElement(tag); if(cls)e.className=cls; if(html!=null)e.innerHTML=html; return e;}
+
+// ---------- TABS ----------
+const TABS = [
+  {id:'overview', name:'總覽', build:buildOverview},
+  {id:'deal', name:'議價', build:buildDeal},
+  {id:'cond', name:'屋況', build:buildCond},
+  {id:'sun',  name:'採光座向', build:buildSun},
+  {id:'layout',name:'格局', build:buildLayout},
+  {id:'room', name:'坪數', build:buildRoom},
+  {id:'bed',  name:'床位', build:buildBed},
+  {id:'move', name:'搬運', build:buildMove},
+  {id:'park', name:'車位', build:buildPark},
+  {id:'env',  name:'環境', build:buildEnv},
+  {id:'photo',name:'拍照', build:buildPhoto},
+  {id:'score',name:'評分', build:buildScore},
+];
+let cur='overview';
+function renderTabs(){
+  const nav=document.getElementById('tabs'); nav.innerHTML='';
+  TABS.forEach(t=>{
+    const b=el('button','tab'+(t.id===cur?' on':''),t.name);
+    b.onclick=()=>{cur=t.id; renderTabs(); renderMain(); window.scrollTo(0,0);};
+    nav.appendChild(b);
+  });
+}
+function renderMain(){
+  const m=document.getElementById('main'); m.innerHTML='';
+  const sec=el('section','on');
+  TABS.find(t=>t.id===cur).build(sec);
+  m.appendChild(sec);
+}
+
+const YN=[{v:'有',cls:'warn'},{v:'無',cls:'good'}];
+const OKBAD=[{v:'正常',cls:'good'},{v:'有問題',cls:'warn'}];
+
+// ---------- PART builders ----------
+function buildDeal(s){
+  const c=card('議價對標數據','談判前先記熟，現場直接引用最有力。');
+  const d=el('div','deal');
+  d.innerHTML=`
+   <div class="r"><span>開價單價（含車位均攤）</span><b>47.82 萬/坪</b></div>
+   <div class="r"><span>回推房屋單價（扣車位）</span><b>約 53–56 萬/坪</b></div>
+   <div class="r"><span>青埔A18站前行情（含車位）</span><b>約 45–52 萬/坪</b></div>
+   <div class="r k"><span>議價目標</span><b>1,600 – 1,650 萬</b></div>`;
+  c.appendChild(d);
+  c.appendChild(el('div','note','錨點：開價47.82萬/坪落在青埔行情中段，非破盤價。同社區尚有多筆同步在售，供給多利於壓價。可用「3房僅1衛規格偏弱＋去化壓力」當談判槓桿；若現場確認西曬或正對軌道，下壓至1,600萬以下。'));
+  s.appendChild(c);
+
+  const c2=card('向仲介必問','逐項問完打勾。');
+  ['車位實際登錄價','裝潢清單與保固','屋主出售原因/持有時間','管理費','銀行估價/可貸成數','漏水保固','海砂/輻射檢測'].forEach((q,i)=>{
+    c2.appendChild(choiceRow(q,'ask_'+i,[{v:'已問',cls:'good'}]));
+  });
+  c2.appendChild(textRow('仲介回覆重點','ask_notes','記錄關鍵答覆…'));
+  s.appendChild(c2);
+}
+
+function buildCond(s){
+  const c=card('結構與屋況','手電筒斜照看裂縫水痕，聞霉味。');
+  c.appendChild(choiceRow('牆面 / 天花板','c_wall',OKBAD));
+  c.appendChild(choiceRow('牆角 / 窗框（潮濕霉味）','c_corner',YN));
+  c.appendChild(choiceRow('地板（翹起 / 空心）','c_floor',YN));
+  c.appendChild(choiceRow('門窗開合','c_door',[{v:'順暢',cls:'good'},{v:'卡卡',cls:'warn'}]));
+  c.appendChild(textRow('漏水保固範圍 / 年限','c_warranty','仲介回覆…'));
+  c.appendChild(textRow('其他屋況備註','c_notes','拍到的瑕疵位置…'));
+  s.appendChild(c);
+}
+
+function buildSun(s){
+  const c=card('採光通風座向','用太陽測量師對準各窗，記錄方位角與直射時數。');
+  c.appendChild(textRow('客廳窗 方位角（度）','s_living','例 195','number'));
+  c.appendChild(choiceRow('客廳窗 朝向','s_living_dir',[{v:'東'},{v:'西'},{v:'南'},{v:'北'}]));
+  c.appendChild(textRow('主臥窗 方位角（度）','s_master','','number'));
+  c.appendChild(choiceRow('次臥對外窗','s_second_win',[{v:'有窗',cls:'good'},{v:'無窗暗房',cls:'warn'}]));
+  c.appendChild(choiceRow('夏至(6/21)午後是否直射','s_summer',[{v:'是',cls:'warn'},{v:'否',cls:'good'}]));
+  c.appendChild(textRow('夏至午後直射時數','s_summer_hr','幾小時','number'));
+  c.appendChild(choiceRow('冬至(12/22)是否有日照','s_winter',[{v:'有',cls:'good'},{v:'無',cls:'warn'}]));
+  c.appendChild(textRow('有效日照起訖','s_daylight','例 9點~15點'));
+  c.appendChild(choiceRow('屋前空地/工地（未來遮蔽風險）','s_future',YN));
+  c.appendChild(choiceRow('西曬綜合判定','s_verdict',[{v:'嚴重(壓價)',cls:'warn'},{v:'普通',cls:'mid'},{v:'無',cls:'good'}]));
+  s.appendChild(c);
+
+  const ref=card('方位建議（主採光面）');
+  ref.appendChild(el('div',null,
+   `<table class="ref">
+     <tr><th>方位</th><th>評價</th><th>說明</th></tr>
+     <tr><td>南／東南</td><td>★最佳</td><td>冬暖夏涼、全天明亮，台灣首選</td></tr>
+     <tr><td>東</td><td>★佳</td><td>上午採光好、午後不曬</td></tr>
+     <tr><td>北</td><td>○可</td><td>無直曬，夏涼冬冷須除濕</td></tr>
+     <tr><td>西／西南</td><td>⚠避免</td><td>西曬最嚴重，室溫高電費增</td></tr>
+     <tr><td>西北</td><td>⚠次差</td><td>西曬＋冬季冷風</td></tr>
+   </table>`));
+  ref.appendChild(el('div','note','朝西/西南(225°–270°)務必量午後直射時數，越長壓價正當性越強。'));
+  s.appendChild(ref);
+}
+
+function buildLayout(s){
+  const c=card('格局動線（含風水對照）','括號內＝對應真實居住問題｜民俗影響。');
+  c.appendChild(choiceRow('穿堂煞 · 門直通後窗（隱私/冷氣外流｜前通後通、人財兩空，難聚財）','l_chuan',YN));
+  c.appendChild(choiceRow('開門見廁（異味/無玄關｜穢氣迎人、主破財傷貴人運 · 可門簾化解）','l_toilet',YN));
+  c.appendChild(choiceRow('開門見灶 · 進門見爐火（油煙入廳｜開門見灶、錢財多耗，主漏財口角 · 屏風化解）','l_stove',YN));
+  c.appendChild(choiceRow('橫樑壓頂 · 客廳或床頭（壓迫/家具難擺｜壓床主頭痛失眠、運勢受壓）','l_beam',YN));
+  c.appendChild(choiceRow('廁所居中無窗（潮濕發霉｜穢氣攻心、財氣受污、健康欠佳）','l_centertoilet',[{v:'是',cls:'warn'},{v:'否',cls:'good'}]));
+  c.appendChild(choiceRow('門對門 · 廁/房（隱私衝突｜門沖主口角是非、穢氣入房 · 可化解）','l_doordoor',YN));
+  c.appendChild(choiceRow('格局方正（缺角難利用｜缺角各方位有所主，如財位缺主漏財）','l_square',[{v:'方正',cls:'good'},{v:'有缺角',cls:'warn'}]));
+  c.appendChild(textRow('格局備註（樑位置/缺角處）','l_notes',''));
+  s.appendChild(c);
+
+  const ref=card('風水對照表','民俗影響僅供輔助參考；右欄為居住實證強度。');
+  ref.appendChild(el('div',null,
+   `<table class="ref">
+     <tr><th>項目</th><th>民俗影響</th><th>現實基礎</th></tr>
+     <tr><td>穿堂煞</td><td>前通後通、人財兩空，難聚財</td><td>強·氣流直洩/隱私</td></tr>
+     <tr><td>開門見灶</td><td>開門見灶、錢財多耗，主漏財</td><td>中·油煙/觀感</td></tr>
+     <tr><td>開門見廁</td><td>穢氣迎人，主破財、傷貴人運</td><td>強·異味/無玄關</td></tr>
+     <tr><td>廁居中暗廁</td><td>穢氣攻心、財氣受污、健康欠佳</td><td>強·潮濕發霉</td></tr>
+     <tr><td>橫樑壓頂</td><td>壓床主頭痛失眠、運勢受壓</td><td>中·壓迫/擺設</td></tr>
+     <tr><td>門對門</td><td>門沖主口角是非、穢氣入房</td><td>弱·多屬象徵</td></tr>
+     <tr><td>格局缺角</td><td>依方位各有所主，財位缺主漏財</td><td>弱·多屬象徵</td></tr>
+   </table>`));
+  ref.appendChild(el('div','note','客觀提醒：除穿堂、暗廁、開門見廁（氣流/穢氣）有居住實證外，「漏財/口角」多屬象徵論述。建議列為輔助提醒，決策權重仍放在硬傷。'));
+  s.appendChild(ref);
+}
+
+function buildRoom(s){
+  const c=card('室內實坪驗證','輸入長寬即時換算坪數，比對主建物權狀 15.19 坪。');
+  c.appendChild(el('p','hint','公式：長cm × 寬cm ÷ 10000 ÷ 3.3058 = 坪'));
+  const rooms=['客廳','餐廳','主臥','次臥','廚房','衛浴1','衛浴2'];
+  const totEl=el('div','totalbar');
+  function recalc(){
+    let sum=0;
+    rooms.forEach((_,i)=>{
+      const L=parseFloat(getVal('rm_'+i+'_l')), W=parseFloat(getVal('rm_'+i+'_w'));
+      const out=document.getElementById('rmpyo_'+i);
+      if(L&&W){const p=L*W/10000/3.3058; if(out)out.textContent=p.toFixed(2)+' 坪'; sum+=p;}
+      else if(out)out.textContent='—';
+    });
+    totEl.innerHTML=`<span>室內實測總和</span><span><b>${sum.toFixed(2)}</b> 坪　vs 15.19</span>`;
+  }
+  rooms.forEach((name,i)=>{
+    const rc=el('div','roomcalc');
+    rc.appendChild(el('div','name',name));
+    const dims=el('div','dims');
+    ['長','寬'].forEach((dn,di)=>{
+      const f=el('div','f'); f.appendChild(el('span',null,dn+' (cm)'));
+      const inp=el('input'); inp.type='number'; inp.inputMode='decimal';
+      const key='rm_'+i+'_'+(di?'w':'l');
+      if(getVal(key)!=null)inp.value=getVal(key);
+      inp.oninput=()=>{setVal(key,inp.value); recalc();};
+      f.appendChild(inp); dims.appendChild(f);
+    });
+    rc.appendChild(dims);
+    const out=el('div','verdict idle','—'); out.id='rmpyo_'+i; out.style.marginTop='8px';
+    rc.appendChild(out);
+    c.appendChild(rc);
+  });
+  c.appendChild(totEl);
+  s.appendChild(c);
+  setTimeout(recalc,0);
+
+  const c2=card('樑柱與淨高');
+  c2.appendChild(textRow('樓板淨高 (cm，標準280–320)','rm_h','','number'));
+  c2.appendChild(textRow('主臥樑下高 (cm)','rm_beam','','number'));
+  c2.appendChild(choiceRow('床頭是否會壓樑','rm_beambed',YN));
+  s.appendChild(c2);
+}
+
+function buildBed(s){
+  const c=card('床位適配判定','輸入房間淨尺寸，自動判定能放哪種床。IKEA床長200cm。');
+  // master + second
+  [['主臥','bd_m'],['次臥','bd_s']].forEach(([nm,key])=>{
+    const rc=el('div','roomcalc');
+    rc.appendChild(el('div','name',nm+' 淨尺寸'));
+    const dims=el('div','dims');
+    ['寬','長'].forEach((dn,di)=>{
+      const f=el('div','f'); f.appendChild(el('span',null,dn+' (cm)'));
+      const inp=el('input'); inp.type='number'; inp.inputMode='decimal';
+      const k=key+'_'+(di?'len':'wid');
+      if(getVal(k)!=null)inp.value=getVal(k);
+      inp.oninput=()=>{setVal(k,inp.value); judge();};
+      f.appendChild(inp); dims.appendChild(f);
+    });
+    rc.appendChild(dims);
+    const v=el('div','verdict idle','輸入尺寸後判定'); v.id='bdv_'+key;
+    rc.appendChild(v);
+    c.appendChild(rc);
+  });
+  function judge(){
+    [['bd_m','主臥'],['bd_s','次臥']].forEach(([key])=>{
+      const W=parseFloat(getVal(key+'_wid')), L=parseFloat(getVal(key+'_len'));
+      const v=document.getElementById('bdv_'+key);
+      if(!W||!L){v.className='verdict idle'; v.textContent='輸入尺寸後判定'; return;}
+      const longOk = L>=240;
+      let txt,cls;
+      if(W<200){txt='只能單人床（非真雙人房）'; cls='warn';}
+      else if(W<260){txt='單人 OK／雙人勉強，走道窄'; cls='mid';}
+      else if(W<280){txt='可放標準雙人(150)'; cls='good';}
+      else {txt='可舒適放特大雙人(180)'; cls='good';}
+      if(!longOk) txt+='｜長度<240，放IKEA床偏緊';
+      v.className='verdict '+cls; v.textContent=txt;
+    });
+  }
+  s.appendChild(c);
+  setTimeout(judge,0);
+
+  const ref=card('床墊與房間對照');
+  ref.appendChild(el('div',null,
+   `<table class="ref">
+     <tr><th>床型</th><th>床墊cm</th><th>房間最小淨尺寸</th></tr>
+     <tr><td>IKEA單人</td><td>90×200</td><td>130×220 / 含櫃200×220</td></tr>
+     <tr><td>IKEA加大單人</td><td>120×200</td><td>160×220</td></tr>
+     <tr><td>台規雙人</td><td>150×200</td><td>220×220 / 含櫃270×230</td></tr>
+     <tr><td>台規特大</td><td>180×200</td><td>250×220 / 舒適320×240</td></tr>
+   </table>`));
+  s.appendChild(ref);
+}
+
+function buildMove(s){
+  const c=card('門與搬運動線','電梯尺寸最易忽略，務必量。');
+  c.appendChild(textRow('大門淨寬 (cm)','mv_doorw','','number'));
+  c.appendChild(textRow('各房門最窄寬 (cm) · 床墊150能否進','mv_roomdoor','','number'));
+  c.appendChild(textRow('走道最窄處 (cm)','mv_hall','','number'));
+  c.appendChild(el('div','note warn','電梯內部 深×寬×高，大家具/冰箱搬不進來是常見災難。'));
+  c.appendChild(textRow('電梯內部 深 (cm)','mv_elev_d','','number'));
+  c.appendChild(textRow('電梯內部 寬 (cm)','mv_elev_w','','number'));
+  c.appendChild(textRow('電梯內部 高 (cm)','mv_elev_h','','number'));
+  s.appendChild(c);
+}
+
+function buildPark(s){
+  const c=card('車位（平面，已含售價）','標線內淨寬才是關鍵，柱子會吃空間。法定2.5×5.5m。');
+  c.appendChild(textRow('標線內淨寬 (cm)','pk_w','底線250，休旅建議260','number'));
+  // live verdict
+  const v=el('div','verdict idle','輸入淨寬後判定');
+  c.appendChild(v);
+  const winp=c.querySelector('input');
+  function pj(){
+    const w=parseFloat(getVal('pk_w'));
+    if(!w){v.className='verdict idle'; v.textContent='輸入淨寬後判定'; return;}
+    if(w<250){v.className='verdict warn'; v.textContent='低於法定2.5m，開門擠、難停';}
+    else if(w<260){v.className='verdict mid'; v.textContent='堪用，鄰車停歪就難開門（休旅吃力）';}
+    else {v.className='verdict good'; v.textContent='寬度充裕，休旅好停';}
+  }
+  winp.addEventListener('input',pj);
+  c.appendChild(textRow('車位長 (cm)','pk_l','','number'));
+  c.appendChild(choiceRow('旁邊有無柱子（吃空間）','pk_pillar',YN));
+  c.appendChild(textRow('車位淨高 (cm，休旅需≥200)','pk_h','','number'));
+  c.appendChild(choiceRow('進出車道好停否','pk_lane',[{v:'好停',cls:'good'},{v:'窄/需倒車',cls:'warn'}]));
+  c.appendChild(choiceRow('充電樁可裝否','pk_charge',[{v:'可',cls:'good'},{v:'否',cls:'warn'}]));
+  c.appendChild(textRow('充電/電源備註','pk_notes',''));
+  s.appendChild(c);
+  setTimeout(pj,0);
+}
+
+function buildEnv(s){
+  const c=card('外部環境與社區','傍晚再看一次人潮與安全。');
+  c.appendChild(choiceRow('窗外正對機捷A18軌道/高架（噪音光害）','e_mrt',YN));
+  c.appendChild(choiceRow('嫌惡設施 變電/電塔/寺廟/醫院','e_bad',YN));
+  c.appendChild(choiceRow('壁刀煞 他棟尖角','e_blade',YN));
+  c.appendChild(choiceRow('屋前明堂視野','e_view',[{v:'開闊',cls:'good'},{v:'遮擋',cls:'warn'}]));
+  c.appendChild(choiceRow('9F樓層性質','e_floor',[{v:'一般',cls:'good'},{v:'中繼水箱/機房層',cls:'warn'}]));
+  c.appendChild(textRow('公設33%含哪些設施','e_facility',''));
+  c.appendChild(textRow('管理費（每坪/車位）','e_fee',''));
+  c.appendChild(textRow('社區入住率','e_occupy','%'));
+  c.appendChild(textRow('機捷實走時間（分鐘）','e_walk','廣告700m·地圖13分','number'));
+  c.appendChild(choiceRow('傍晚人潮/路燈/安全','e_night',[{v:'良好',cls:'good'},{v:'冷清',cls:'warn'}]));
+  s.appendChild(c);
+}
+
+function buildPhoto(s){
+  const c=card('拍照 / 錄影清單','回家比對用，拍到打勾。');
+  ['大門開啟視角(看見廁/穿堂)','每間房全景','次臥對外窗','樑柱位置','廚房水火配置','衛浴','各窗外景觀','太陽測量師AR截圖','車位與柱位','電梯內部','公設','社區外觀/周邊'].forEach((q,i)=>{
+    c.appendChild(choiceRow(q,'ph_'+i,[{v:'已拍',cls:'good'}]));
+  });
+  s.appendChild(c);
+}
+
+function buildOverview(s){
+  const c=card('一句話結論','線上初評，現場再驗證。');
+  c.appendChild(el('div','ovverdict','再考慮 · 值得實地看屋，先鎖定三大待測硬傷'));
+  s.appendChild(c);
+
+  const d0=card('物件速覽');
+  const dl=el('div','deal');
+  dl.innerHTML=`
+   <div class="r"><span>開價 / 單價</span><b>1,698 萬 · 47.82 萬/坪</b></div>
+   <div class="r"><span>格局 / 坪數</span><b>3房2廳1衛 · 35.51坪(主建物15.19)</b></div>
+   <div class="r"><span>屋齡 / 樓層</span><b>5年 · 11F/15F</b></div>
+   <div class="r"><span>公設 / 管理費</span><b>33% · 2,656元/月</b></div>
+   <div class="r k"><span>議價目標</span><b>1,600 – 1,650 萬</b></div>`;
+  d0.appendChild(dl);
+  s.appendChild(d0);
+
+  const c1=card('優勢');
+  c1.appendChild(el('ul','ovlist good',
+   '<li>A18站前雙鐵，步行約700m達高鐵＋機捷（地圖實走13分）</li>'+
+   '<li>鄰華泰名品城、IKEA，站前商業機能成熟</li>'+
+   '<li>鄰公七公園、青埔市民活動中心，綠意佳</li>'+
+   '<li>屋齡5年次新，結構風險低；飯店式管理</li>'));
+  s.appendChild(c1);
+
+  const c2=card('硬傷（決策關鍵）');
+  const hb=el('div','hardbox');
+  hb.innerHTML=
+   '<ul>'+
+   '<li><b>3房僅1衛</b> — 結構性弱點，早晨塞車、轉手扣分，難化解</li>'+
+   '<li><b>主建物僅15.19坪</b> — 佔比約43%，3房空間偏緊</li>'+
+   '<li><b>座向與軌道噪音未明</b> — 站前側，西曬／噪音風險待測</li>'+
+   '<li><b>疑似暗廁</b> — 唯一衛浴居中無對外窗，潮濕發霉雙重扣分</li>'+
+   '</ul>';
+  c2.appendChild(hb);
+  s.appendChild(c2);
+
+  const c3=card('風水財運提示','客觀參考，非決策主權重。');
+  c3.appendChild(el('div','note warn',
+   '與「留不住財」相關者為開門見灶、穿堂煞，皆可用屏風／中島／玄關櫃化解。真正雙重扣分的是暗廁——現實殺傷力（潮濕發霉）遠大於象徵意義。'));
+  c3.appendChild(el('div','note',
+   '提醒：除暗廁、穿堂（氣流）有居住實證外，「漏財／口角」多屬象徵論述，建議列為輔助提醒。'));
+  s.appendChild(c3);
+
+  const c4=card('現場必測（待補硬指標）','切到對應分頁填寫。');
+  c4.appendChild(el('ul','ovlist',
+   '<li><b>採光座向：</b>太陽測量師AR量各窗方位角 → 判西曬</li>'+
+   '<li><b>床位/坪數：</b>量各房淨尺寸 → 驗主建物、能否放雙人床</li>'+
+   '<li><b>車位：</b>標線內淨寬、淨高、是否臨柱、可否裝充電樁</li>'+
+   '<li><b>搬運：</b>大門寬、房門寬、電梯內部深×寬×高</li>'+
+   '<li><b>衛浴：</b>確認唯一衛浴是否有對外窗或抽風（暗廁判定）</li>'));
+  s.appendChild(c4);
+}
+
+function buildScore(s){
+  const pr=card('決策優先序','看屋當下對照。');
+  pr.appendChild(el('div','prio','<span class="pill hard">硬傷</span>3房僅1衛（早晨塞車·轉手扣分·難化解）'));
+  pr.appendChild(el('div','prio','<span class="pill hard">硬傷</span>西曬程度'));
+  pr.appendChild(el('div','prio','<span class="pill hard">硬傷</span>唯一衛浴是否暗廁（無對外窗→潮濕發霉）'));
+  pr.appendChild(el('div','prio','<span class="pill hard">硬傷</span>次臥是否暗房／能否放雙人床'));
+  pr.appendChild(el('div','prio','<span class="pill hard">硬傷</span>是否正對高鐵／機捷軌道'));
+  pr.appendChild(el('div','prio','<span class="pill hard">硬傷</span>樑柱位置'));
+  pr.appendChild(el('div','prio','<span class="pill hard">硬傷</span>電梯能否進家具'));
+  pr.appendChild(el('div','prio','<span class="pill soft">可化解</span>開門見灶／穿堂煞／門對門 → 屏風中島玄關櫃即可'));
+  s.appendChild(pr);
+
+  const c=card('綜合評分','點星評分（1–5）。');
+  const items=[['屋況結構','sc_cond'],['採光/西曬','sc_sun'],['格局實用','sc_layout'],['房間可放床','sc_bed'],['車位好停','sc_park'],['外部環境','sc_env'],['價格合理','sc_price']];
+  items.forEach(([name,key])=>{
+    const r=el('div','row');
+    r.appendChild(el('div','scorehead',name));
+    const sw=el('div','stars');
+    for(let n=1;n<=5;n++){
+      const st=el('span','star'+((getVal(key)||0)>=n?' lit':''),'★');
+      st.onclick=()=>{
+        setVal(key, getVal(key)===n?0:n);
+        [...sw.children].forEach((c2,idx)=>c2.classList.toggle('lit',(getVal(key)||0)>=idx+1));
+      };
+      sw.appendChild(st);
+    }
+    r.appendChild(sw); c.appendChild(r);
+  });
+  c.appendChild(choiceRow('總評 · 是否出價','sc_final',[{v:'出價',cls:'good'},{v:'再考慮',cls:'mid'},{v:'放棄',cls:'warn'}]));
+  c.appendChild(textRow('總結備註','sc_notes','綜合判斷…'));
+  s.appendChild(c);
+}
+
+// ---------- save / load / summary ----------
+function toast(msg){const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1600);}
+function openData(){const d=document.getElementById('dataDlg'); document.getElementById('dataBox').value=JSON.stringify(S); d.showModal();}
+function closeData(){document.getElementById('dataDlg').close();}
+function loadData(){
+  try{const obj=JSON.parse(document.getElementById('dataBox').value.trim());
+    Object.keys(S).forEach(k=>delete S[k]); Object.assign(S,obj);
+    closeData(); renderMain(); toast('已讀取紀錄');
+  }catch(e){toast('格式錯誤，請貼完整資料');}
+}
+function copySummary(){
+  const L=[]; L.push('【鉅陞日和花園 看屋紀錄】');
+  const map={
+    s_living_dir:'客廳朝向',s_second_win:'次臥窗',s_summer:'夏至午後直射',s_verdict:'西曬判定',
+    l_chuan:'穿堂煞',l_toilet:'開門見廁',l_stove:'開門見灶',l_beam:'橫樑壓頂',l_doordoor:'門對門',l_square:'格局',
+    pk_w:'車位淨寬cm',pk_pillar:'車位旁柱',e_mrt:'正對機捷',e_floor:'樓層性質',e_night:'傍晚安全',
+    sc_final:'是否出價',sc_notes:'總結'
+  };
+  // bed verdicts
+  function bedTxt(key){const W=parseFloat(S[key+'_wid']),Ln=parseFloat(S[key+'_len']); if(!W)return null;
+    let t=W<200?'僅單人':W<260?'雙人勉強':W<280?'標準雙人':'特大雙人'; if(Ln&&Ln<240)t+'(長偏短)'; return t+`(${W}×${Ln||'?'})`;}
+  Object.keys(map).forEach(k=>{if(S[k]!=null&&S[k]!=='')L.push(`${map[k]}：${S[k]}`);});
+  const bm=bedTxt('bd_m'),bs=bedTxt('bd_s');
+  if(bm)L.push('主臥床位：'+bm); if(bs)L.push('次臥床位：'+bs);
+  // room total
+  let sum=0,any=false;
+  for(let i=0;i<7;i++){const a=parseFloat(S['rm_'+i+'_l']),b=parseFloat(S['rm_'+i+'_w']); if(a&&b){sum+=a*b/10000/3.3058;any=true;}}
+  if(any)L.push(`室內實坪總和：${sum.toFixed(2)}坪 (vs主建物15.19)`);
+  // score
+  const sc=['sc_cond','sc_sun','sc_layout','sc_bed','sc_park','sc_env','sc_price'].map(k=>S[k]||0);
+  if(sc.some(x=>x))L.push('評分(屋況/採光/格局/床/車/環境/價格)：'+sc.join('/'));
+  const txt=L.join('\n');
+  navigator.clipboard.writeText(txt).then(()=>toast('摘要已複製')).catch(()=>{
+    document.getElementById('dataBox').value=txt; document.getElementById('dataDlg').showModal();
+  });
+}
+
+// init
+renderTabs(); renderMain();
+</script>
+</body>
+</html>
