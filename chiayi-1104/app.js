@@ -75,11 +75,11 @@ const sitePhotos={
     source:"https://www.businesstoday.com.tw/article/category/183027/post/202312130027/"
   }],
   orange:[{
-    src:"./images/orange-202610-report.webp",
-    alt:"橙光案場爭議路口附近布條與居民情形，為2026年10月14日內部通報附圖",
+    src:"./images/orange-road-clear.avif",
+    alt:"橙光案場爭議路口附近布條與居民情形，為現地路口照片",
     title:"橙光案場｜爭議路口觀察影像",
-    note:"2026/10/14 內部通報附圖，非當日照片；非途經標記點精確定位",
-    credit:"《嘉義內部補充資訊 v1.1》第7頁",
+    note:"清晰版現地照片；照片拍攝日未另行確認，且非途經標記點精確定位",
+    credit:"使用者補充照片",
     source:null
   }],
   gao:[{
